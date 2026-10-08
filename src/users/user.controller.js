@@ -107,3 +107,49 @@ export const getUserProfile = (req, res) => {
         })
     }
 }
+
+export const getPlanilla = async (req, res) => {
+    try {
+        const usuarios = await User.find({ status: true }).select(
+            "name surname puesto salarioBase bonoIncentivo"
+        );
+
+        const IGSS_PORCENTAJE = 0.0483; // 4.83% de cuota laboral
+
+        const planilla = usuarios.map(emp => {
+            const salarioBase = emp.salarioBase || 0;
+            const bonoIncentivo = emp.bonoIncentivo || 0;
+
+            const totalDevengado = salarioBase + bonoIncentivo;
+            
+            // El IGSS se calcula ÚNICAMENTE sobre el Salario Base
+            const igss = parseFloat((salarioBase * IGSS_PORCENTAJE).toFixed(2));
+            
+            const totalLiquido = parseFloat((totalDevengado - igss).toFixed(2));
+
+            return {
+                id: emp._id,
+                nombreEmpleado: `${emp.name} ${emp.surname}`,
+                puesto: emp.puesto,
+                salarioBase,
+                bonoIncentivo,
+                totalDevengado,
+                igss,
+                totalLiquido
+            };
+        });
+
+        res.status(200).json({
+            success: true,
+            totalEmpleados: planilla.length,
+            planilla
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            msg: "Error al generar la planilla",
+            error: error.message
+        });
+    }
+};

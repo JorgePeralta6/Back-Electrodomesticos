@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { check } from "express-validator";
-import { deleteUser, getUserProfile, getUsers, updateUser } from "./user.controller.js";
+import { deleteUser, getUserProfile, getUsers, updateUser, getPlanilla } from "./user.controller.js";
 import { existUserById, existUsername } from "../helpers/db-validator.js";
 import { validateFields } from "../middlewares/validate-fields.js";
 import { validateJWT } from "../middlewares/validate-jwt.js";
@@ -43,5 +43,7 @@ router.get(
     ],
     getUserProfile
 )
+
+router.get("/planilla", getPlanilla)
 
 export default router;

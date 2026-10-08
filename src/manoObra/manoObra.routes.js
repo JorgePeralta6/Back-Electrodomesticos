@@ -2,7 +2,8 @@ import { Router } from "express";
 import { check } from "express-validator";
 import { validateJWT } from "../middlewares/validate-jwt.js";
 import { validateFields } from "../middlewares/validate-fields.js";
-import { getManoObra, saveManoObra } from "./manoObra.controller.js";
+import { getManoObra, saveManoObra, updateManoObra, deleteManoObra } from "./manoObra.controller.js";
+import { validateAdmin } from "../middlewares/validate-user.js";
 
 const router = Router();
 
@@ -19,6 +20,29 @@ router.post(
         validateFields
     ],
     saveManoObra
+);
+
+router.put(
+    "/:id",
+    [
+        validateJWT,
+        validateAdmin,
+        check("id", "No es un ID válido de Mongo").isMongoId(),
+        check("empleado", "El ID de empleado no es válido").optional().isMongoId(),
+        validateFields
+    ],
+    updateManoObra
+);
+
+router.delete(
+    "/:id",
+    [
+        validateJWT,
+        validateAdmin,
+        check("id", "No es un ID válido de Mongo").isMongoId(),
+        validateFields
+    ],
+    deleteManoObra
 );
 
 export default router;
