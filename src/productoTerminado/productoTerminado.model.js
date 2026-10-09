@@ -37,7 +37,7 @@ const ProductoTerminadoSchema = new Schema(
             type: Number,
             default: 0
         },
-        receta: [DetalleProductoSchema], // Mapeo de DetalleProducto
+        receta: [DetalleProductoSchema],
         status: {
             type: Boolean,
             default: true

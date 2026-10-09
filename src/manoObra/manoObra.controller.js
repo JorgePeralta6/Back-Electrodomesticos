@@ -3,7 +3,7 @@ import ManoObra from "./manoObra.model.js";
 export const saveManoObra = async (req, res) => {
     try {
         const { proceso, horasTrabajadas, tarifaPorHora, productoTerminado } = req.body;
-        const empleado = req.usuario._id; // Obtenido desde el token JWT
+        const empleado = req.usuario._id; 
 
         const manoObra = new ManoObra({
             proceso,
@@ -54,7 +54,7 @@ export const getManoObra = async (req, res) => {
 export const updateManoObra = async (req, res) => {
     try {
         const { id } = req.params;
-        // Solo omitimos _id para no sobreescribir la llave primaria de Mongo
+
         const { _id, ...data } = req.body;
 
         const manoObra = await ManoObra.findById(id);
@@ -66,10 +66,10 @@ export const updateManoObra = async (req, res) => {
             });
         }
 
-        // Asignamos las nuevas propiedades (incluyendo empleado si viene en el body)
+
         Object.assign(manoObra, data);
 
-        // Al usar save(), se recalculan hooks y se aplican las referencias
+
         await manoObra.save();
 
         res.status(200).json({

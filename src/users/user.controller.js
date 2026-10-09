@@ -114,7 +114,7 @@ export const getPlanilla = async (req, res) => {
             "name surname puesto salarioBase bonoIncentivo"
         );
 
-        const IGSS_PORCENTAJE = 0.0483; // 4.83% de cuota laboral
+        const IGSS_PORCENTAJE = 0.0483; 
 
         const planilla = usuarios.map(emp => {
             const salarioBase = emp.salarioBase || 0;
@@ -122,7 +122,6 @@ export const getPlanilla = async (req, res) => {
 
             const totalDevengado = salarioBase + bonoIncentivo;
             
-            // El IGSS se calcula ÚNICAMENTE sobre el Salario Base
             const igss = parseFloat((salarioBase * IGSS_PORCENTAJE).toFixed(2));
             
             const totalLiquido = parseFloat((totalDevengado - igss).toFixed(2));
