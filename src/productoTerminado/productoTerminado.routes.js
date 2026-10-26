@@ -13,13 +13,13 @@ import {
 
 const router = Router();
 
-router.use(validateJWT);
 
 router.get("/", getProductosTerminados);
 
 router.post(
     "/",
     [
+        validateJWT,
         validateAdmin,
         check("nombre", "El nombre es obligatorio").not().isEmpty(),
         check("precio", "El precio es obligatorio y debe ser un número positivo").isFloat({ min: 0 }),
@@ -35,6 +35,7 @@ router.post(
 router.put(
     "/:id",
     [
+        validateJWT,
         validateAdmin,
         check("id", "Invalid Mongo ID").isMongoId(),
         check("id").custom(productoTerminadoExistsById),
@@ -46,6 +47,7 @@ router.put(
 router.delete(
     "/:id",
     [
+        validateJWT,
         validateAdmin,
         check("id", "Invalid Mongo ID").isMongoId(),
         check("id").custom(productoTerminadoExistsById),
