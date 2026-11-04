@@ -8,13 +8,25 @@ import {
     saveProductoTerminado, 
     getProductosTerminados, 
     updateProductoTerminado, 
-    deleteProductoTerminado 
+    deleteProductoTerminado,
+    comprarProducto
 } from "./productoTerminado.controller.js";
 
 const router = Router();
 
 
 router.get("/", getProductosTerminados);
+
+// Compra pública: no requiere sesión
+router.post(
+    "/comprar",
+    [
+        check("productoId", "El ID del producto es inválido").isMongoId(),
+        check("cantidad", "La cantidad debe ser un entero entre 1 y 100").optional().isInt({ min: 1, max: 100 }),
+        validateFields
+    ],
+    comprarProducto
+);
 
 router.post(
     "/",
