@@ -20,15 +20,28 @@ const ManoObraSchema = new Schema(
         costoTotal: {
             type: Number
         },
+        // Producto en el que se trabajó, escrito a mano (opcional).
+        // Así se puede registrar mano de obra aunque el producto aún no exista.
+        producto: {
+            type: String,
+            trim: true,
+            maxLength: [60, "El producto no puede exceder 60 caracteres"]
+        },
+        // (Legado) vínculo a un producto terminado ya existente
         productoTerminado: {
             type: Schema.Types.ObjectId,
-            ref: "ProductoTerminado",
-            required: true
+            ref: "ProductoTerminado"
         },
+        // Quién realizó el trabajo (se elige en el formulario)
         empleado: {
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true
+        },
+        // Quién lo registró en el sistema (el usuario con sesión iniciada)
+        registradoPor: {
+            type: Schema.Types.ObjectId,
+            ref: "User"
         },
         status: {
             type: Boolean,

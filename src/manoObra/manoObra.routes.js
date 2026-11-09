@@ -16,7 +16,9 @@ router.post(
         check("proceso", "El proceso es obligatorio").not().isEmpty(),
         check("horasTrabajadas", "Las horas deben ser numéricas").isNumeric(),
         check("tarifaPorHora", "La tarifa debe ser numérica").isNumeric(),
-        check("productoTerminado", "Debe ser un ID de Producto válido").isMongoId(),
+        check("producto", "El producto debe ser texto (máx. 60 caracteres)").optional({ checkFalsy: true }).isString().isLength({ max: 60 }),
+        check("productoTerminado", "Debe ser un ID de Producto válido").optional({ checkFalsy: true }).isMongoId(),
+        check("empleado", "El ID de empleado no es válido").optional({ checkFalsy: true }).isMongoId(),
         validateFields
     ],
     saveManoObra
@@ -29,6 +31,7 @@ router.put(
         validateAdmin,
         check("id", "No es un ID válido de Mongo").isMongoId(),
         check("empleado", "El ID de empleado no es válido").optional().isMongoId(),
+        check("producto", "El producto debe ser texto (máx. 60 caracteres)").optional().isString().isLength({ max: 60 }),
         validateFields
     ],
     updateManoObra

@@ -2,15 +2,18 @@ import ManoObra from "./manoObra.model.js";
 
 export const saveManoObra = async (req, res) => {
     try {
-        const { proceso, horasTrabajadas, tarifaPorHora, productoTerminado } = req.body;
-        const empleado = req.usuario._id; 
+        const { proceso, horasTrabajadas, tarifaPorHora, productoTerminado, producto } = req.body;
+        const empleado = req.body.empleado || req.usuario._id;
+        const registradoPor = req.usuario._id;
 
         const manoObra = new ManoObra({
             proceso,
             horasTrabajadas,
             tarifaPorHora,
-            productoTerminado,
-            empleado
+            producto: producto?.trim() || undefined,
+            productoTerminado: productoTerminado || undefined,
+            empleado,
+            registradoPor
         });
 
         await manoObra.save();
@@ -35,7 +38,8 @@ export const getManoObra = async (req, res) => {
 
         const registros = await ManoObra.find(query)
             .populate("productoTerminado", "nombre precio")
-            .populate("empleado", "name surname role");
+            .populate("empleado", "name surname username role")
+            .populate("registradoPor", "name surname username role");
 
         res.status(200).json({
             success: true,
@@ -55,7 +59,8 @@ export const updateManoObra = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const { _id, ...data } = req.body;
+        const { _id, registradoPor, ...data } = req.body;
+        if (data.productoTerminado === "") data.productoTerminado = undefined;
 
         const manoObra = await ManoObra.findById(id);
 

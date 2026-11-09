@@ -2,14 +2,14 @@ import MateriaPrima from "./materiaPrima.model.js";
 
 export const getMateriasPrimas = async (req, res) => {
     try {
-        const { limite = 10, desde = 0 } = req.query;
+        const { limite, desde = 0 } = req.query;
         const query = { status: true };
 
         const [total, materiasPrimas] = await Promise.all([
             MateriaPrima.countDocuments(query),
             MateriaPrima.find(query)
                 .skip(Number(desde))
-                .limit(Number(limite))
+                .limit(Number(limite) || 0)
         ]);
 
         res.status(200).json({

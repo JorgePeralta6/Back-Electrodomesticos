@@ -10,6 +10,8 @@ import userRoutes from '../src/users/user.routes.js'
 import materiaPrimaRoutes from '../src/materiaPrima/materiaPrima.routes.js'
 import productoTerminadoRoutes from '../src/productoTerminado/productoTerminado.routes.js'
 import manoObraRoutes from '../src/manoObra/manoObra.routes.js'
+import productoFinalRoutes from '../src/productoFinal/productoFinal.routes.js'
+import faltanteRoutes from '../src/faltante/faltante.routes.js'
 import { createAdmin } from '../src/middlewares/creation-default-admin.js';
 import { createRoles } from '../src/role/role.controller.js';
 
@@ -28,6 +30,8 @@ const routes = (app) => {
     app.use('/electrodomestico/v1/materiaPrima', materiaPrimaRoutes);
     app.use('/electrodomestico/v1/productoTerminado', productoTerminadoRoutes);
     app.use('/electrodomestico/v1/manoObra', manoObraRoutes);
+    app.use('/electrodomestico/v1/productoFinal', productoFinalRoutes);
+    app.use('/electrodomestico/v1/faltante', faltanteRoutes);
 }
 
 const conectarDB = async () => {

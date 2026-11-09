@@ -4,13 +4,13 @@ import User from "./user.model.js";
 
 export const getUsers = async (req = request, res = response) => {  
     try {
-        const {limite = 10, desde = 0 } = req.query;
+        const {limite, desde = 0 } = req.query;
         const query = {status: true}
         const [total, users] = await Promise.all([
             User.countDocuments(query),
             User.find(query)
                 .skip(Number(desde))
-                .limit(Number(limite))
+                .limit(Number(limite) || 0)
         ])
 
         res.status(200).json({

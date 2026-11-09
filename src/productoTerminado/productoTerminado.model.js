@@ -25,9 +25,17 @@ const ProductoTerminadoSchema = new Schema(
         },
         precio: {
             type: Number,
-            required: [true, "El precio es obligatorio"],
+            default: 0,
             min: [0, "El precio no puede ser negativo"]
         },
+        margenGanancia: {
+            type: Number,
+            default: 0,
+            min: [0, "El margen no puede ser negativo"],
+            max: [99.99, "El margen debe ser menor a 100"]
+        },
+        costoMateriaPrima: { type: Number, default: 0 },
+        costoManoObra: { type: Number, default: 0 },
         stock: {
             type: Number,
             default: 0,
@@ -38,6 +46,10 @@ const ProductoTerminadoSchema = new Schema(
             default: 0
         },
         receta: [DetalleProductoSchema],
+        manoObra: [{
+            type: Schema.Types.ObjectId,
+            ref: "ManoObra"
+        }],
         status: {
             type: Boolean,
             default: true

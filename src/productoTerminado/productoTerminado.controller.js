@@ -1,16 +1,47 @@
 import ProductoTerminado from "./productoTerminado.model.js";
+import MateriaPrima from "../materiaPrima/materiaPrima.model.js";
+import ManoObra from "../manoObra/manoObra.model.js";
+
+const redondear = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+
+// precio = (materia prima + mano de obra) / (1 - margen/100)
+const calcularCostos = async ({ receta = [], manoObra = [], margenGanancia = 0 }) => {
+    const ids = receta.map(d => d.materiaPrima);
+    const materias = await MateriaPrima.find({ _id: { $in: ids } }, "costoUnitario");
+    const costoPorId = new Map(materias.map(m => [String(m._id), m.costoUnitario]));
+    const costoMateriaPrima = receta.reduce(
+        (acc, d) => acc + (costoPorId.get(String(d.materiaPrima)) ?? 0) * d.cantidadRequerida, 0
+    );
+
+    const registros = await ManoObra.find({ _id: { $in: manoObra }, status: true }, "costoTotal horasTrabajadas tarifaPorHora");
+    const costoManoObra = registros.reduce(
+        (acc, r) => acc + (r.costoTotal ?? r.horasTrabajadas * r.tarifaPorHora), 0
+    );
+
+    const margen = Number(margenGanancia) || 0;
+    const precio = (costoMateriaPrima + costoManoObra) / (1 - margen / 100);
+
+    return {
+        costoMateriaPrima: redondear(costoMateriaPrima),
+        costoManoObra: redondear(costoManoObra),
+        precio: redondear(precio)
+    };
+};
+
+const populateProducto = (query) => query
+    .populate("receta.materiaPrima", "nombre costoUnitario")
+    .populate("manoObra", "proceso horasTrabajadas tarifaPorHora costoTotal");
 
 export const getProductosTerminados = async (req, res) => {
     try {
-        const { limite = 10, desde = 0 } = req.query;
+        const { limite, desde = 0 } = req.query;
         const query = { status: true };
 
         const [total, productos] = await Promise.all([
             ProductoTerminado.countDocuments(query),
-            ProductoTerminado.find(query)
-                .populate("receta.materiaPrima", "nombre costoUnitario")
+            populateProducto(ProductoTerminado.find(query))
                 .skip(Number(desde))
-                .limit(Number(limite))
+                .limit(Number(limite) || 0)
         ]);
 
         res.status(200).json({
@@ -29,8 +60,9 @@ export const getProductosTerminados = async (req, res) => {
 
 export const saveProductoTerminado = async (req, res) => {
     try {
-        const data = req.body;
-        const producto = new ProductoTerminado(data);
+        const { precio, costoMateriaPrima, costoManoObra, ...data } = req.body;
+        const costos = await calcularCostos(data);
+        const producto = new ProductoTerminado({ ...data, ...costos });
         await producto.save();
 
         res.status(201).json({
@@ -50,17 +82,26 @@ export const saveProductoTerminado = async (req, res) => {
 export const updateProductoTerminado = async (req, res) => {
     try {
         const { id } = req.params;
-        const { _id, ...data } = req.body;
+        const { _id, precio, costoMateriaPrima, costoManoObra, ...data } = req.body;
 
-        const producto = await ProductoTerminado.findByIdAndUpdate(id, data, { new: true })
-            .populate("receta.materiaPrima", "nombre costoUnitario");
-
-        if (!producto) {
+        const actual = await ProductoTerminado.findById(id);
+        if (!actual || !actual.status) {
             return res.status(404).json({
                 success: false,
                 msg: "Producto no encontrado"
             });
         }
+
+        const merged = {
+            receta: data.receta ?? actual.receta,
+            manoObra: data.manoObra ?? actual.manoObra,
+            margenGanancia: data.margenGanancia ?? actual.margenGanancia
+        };
+        const costos = await calcularCostos(merged);
+
+        const producto = await populateProducto(
+            ProductoTerminado.findByIdAndUpdate(id, { ...data, ...costos }, { new: true, runValidators: true })
+        );
 
         res.status(200).json({
             success: true,
@@ -101,13 +142,11 @@ export const deleteProductoTerminado = async (req, res) => {
     }
 };
 
-// Compra pública (sin sesión): descuenta stock y suma ventas de forma atómica
 export const comprarProducto = async (req, res) => {
     try {
         const { productoId } = req.body;
         const cantidad = Number(req.body.cantidad ?? 1);
 
-        // El filtro incluye stock >= cantidad, así dos compras simultáneas no dejan el stock negativo
         const producto = await ProductoTerminado.findOneAndUpdate(
             { _id: productoId, status: true, stock: { $gte: cantidad } },
             { $inc: { stock: -cantidad, ventas: cantidad } },
